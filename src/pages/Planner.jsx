@@ -28,13 +28,12 @@ export default function Planner({ onBack }) {
 
   async function fetchData() {
     setLoading(true)
-    const startOfWeek = getWeekStart(currentDate)
-    const endOfWeek = new Date(startOfWeek)
-    endOfWeek.setDate(endOfWeek.getDate() + 7)
+    const start = getWeekStart(currentDate)
+    const end = getWeekEnd(currentDate)
 
     const [cRes, sRes] = await Promise.all([
       supabase.from('courses').select('id, name, color').eq('user_id', user.id),
-      supabase.from('study_sessions').select('*').eq('user_id', user.id).gte('date', startOfWeek).lt('date', endOfWeek).order('date', { ascending: true }).order('start_time', { ascending: true })
+      supabase.from('study_sessions').select('*').eq('user_id', user.id).gte('date', start).lte('date', end).order('date', { ascending: true }).order('start_time', { ascending: true })
     ])
 
     setCourses(cRes.data || [])
@@ -46,7 +45,21 @@ export default function Planner({ onBack }) {
     const d = new Date(date)
     const day = d.getDay()
     d.setDate(d.getDate() - ((day + 6) % 7))
-    return d.toISOString().split('T')[0]
+    return toDateStr(d)
+  }
+
+  function getWeekEnd(date) {
+    const d = new Date(date)
+    const day = d.getDay()
+    d.setDate(d.getDate() - ((day + 6) % 7) + 6)
+    return toDateStr(d)
+  }
+
+  function toDateStr(d) {
+    const y = d.getFullYear()
+    const m = String(d.getMonth() + 1).padStart(2, '0')
+    const day = String(d.getDate()).padStart(2, '0')
+    return y + '-' + m + '-' + day
   }
 
   function prevWeek() { setWeekOffset(w => w - 1) }
@@ -105,8 +118,7 @@ export default function Planner({ onBack }) {
         </button>
       </div>
 
-      {/* Week Navigation */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
         <div className="flex items-center gap-2">
           <button onClick={prevWeek} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-s2 text-muted hover:text-txt transition-colors"><i className="fa-solid fa-chevron-left text-xs"></i></button>
           <button onClick={goToday} className="px-3 py-1.5 text-sm text-muted hover:text-accent transition-colors">Today</button>
@@ -125,7 +137,6 @@ export default function Planner({ onBack }) {
         </div>
       </div>
 
-      {/* Progress bar */}
       {filteredSessions.length > 0 && (
         <div className="mb-4">
           <div className="w-full h-1.5 bg-s2 rounded-full overflow-hidden">
@@ -134,7 +145,6 @@ export default function Planner({ onBack }) {
         </div>
       )}
 
-      {/* Content */}
       {filteredSessions.length === 0 ? (
         <EmptyState icon="fa-calendar-plus" title="No sessions this week" description="Schedule your first study session to stay on track." action={() => { setDefaultDate(''); setCreateOpen(true) }} actionLabel="Schedule Session" />
       ) : view === 'week' ? (
@@ -169,9 +179,8 @@ function formatDateRange(date) {
   monday.setDate(start.getDate() - ((day + 6) % 7))
   const sunday = new Date(monday)
   sunday.setDate(monday.getDate() + 6)
-  const opts = { month: 'short', day: 'numeric' }
   if (monday.getMonth() === sunday.getMonth()) {
     return monday.toLocaleDateString('en-US', { month: 'long', day: 'numeric' }) + ' - ' + sunday.getDate()
   }
-  return monday.toLocaleDateString('en-US', opts) + ' - ' + sunday.toLocaleDateString('en-US', opts)
+  return monday.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' - ' + sunday.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
