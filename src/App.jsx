@@ -1,0 +1,93 @@
+﻿import { useState, useEffect } from 'react'
+import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom'
+import { AuthProvider, useAuth } from './hooks/useAuth'
+import { ToastProvider } from './hooks/useToast'
+import { supabase } from './lib/supabase'
+import AuthForm from './components/auth/AuthForm'
+import AppLayout from './components/layout/AppLayout'
+import Dashboard from './pages/Dashboard'
+import CourseDetail from './pages/CourseDetail'
+import NotFound from './pages/NotFound'
+
+function ProtectedRoute({ children }) {
+  const { user, loading } = useAuth()
+  if (loading) return <div className="min-h-screen flex items-center justify-center text-muted"><i className="fa-solid fa-spinner fa-spin mr-3 text-accent"></i>Loading...</div>
+  if (!user) return <Navigate to="/auth" replace />
+  return children
+}
+
+function PublicRoute({ children }) {
+  const { user, loading } = useAuth()
+  if (loading) return <div className="min-h-screen flex items-center justify-center text-muted"><i className="fa-solid fa-spinner fa-spin mr-3 text-accent"></i>Loading...</div>
+  if (user) return <Navigate to="/" replace />
+  return children
+}
+
+function AppRoutes() {
+  const { user, signOut } = useAuth()
+  const navigate = useNavigate()
+  const location = useLocation()
+  const [courses, setCourses] = useState([])
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+
+  const activeCourseId = location.pathname.startsWith('/course/') ? location.pathname.split('/course/')[1] : null
+
+  useEffect(() => {
+    if (!user) return
+    supabase.from('courses').select('id, name, color, created_at').eq('user_id', user.id).order('created_at', { ascending: false }).then(({ data }) => {
+      setCourses(data || [])
+    })
+  }, [user, location])
+
+  function handleCourseClick(courseId) {
+    if (courseId) navigate('/course/' + courseId)
+    else navigate('/')
+    setSidebarOpen(false)
+  }
+
+  async function handleLogout() {
+    await signOut()
+    navigate('/auth')
+  }
+
+  function handleMenuClick() {
+    const sb = document.getElementById('sidebar')
+    if (sb) {
+      sb.classList.toggle('-translate-x-full')
+      sb.classList.toggle('translate-x-0')
+    }
+  }
+
+  return (
+    <Routes>
+      <Route path="/auth" element={<PublicRoute><AuthForm /></PublicRoute>} />
+      <Route path="/" element={
+        <ProtectedRoute>
+          <AppLayout courses={courses} activeCourseId={activeCourseId} onCourseClick={handleCourseClick} onNewCourse={() => navigate('/')} user={user} onLogout={handleLogout} onMenuClick={handleMenuClick}>
+            <Dashboard user={user} onNavigateCourse={(id) => navigate('/course/' + id)} />
+          </AppLayout>
+        </ProtectedRoute>
+      } />
+      <Route path="/course/:courseId" element={
+        <ProtectedRoute>
+          <AppLayout courses={courses} activeCourseId={activeCourseId} onCourseClick={handleCourseClick} onNewCourse={() => navigate('/')} user={user} onLogout={handleLogout} onMenuClick={handleMenuClick}>
+            <CourseDetail courseId={activeCourseId} user={user} onBack={() => navigate('/')} />
+          </AppLayout>
+        </ProtectedRoute>
+      } />
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+  )
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <AuthProvider>
+        <ToastProvider>
+          <AppRoutes />
+        </ToastProvider>
+      </AuthProvider>
+    </BrowserRouter>
+  )
+}
