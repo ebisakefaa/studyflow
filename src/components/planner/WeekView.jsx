@@ -1,11 +1,18 @@
+function toLocalDateStr(d) {
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return y + '-' + m + '-' + day
+}
+
 export default function WeekView({ sessions, courses, currentDate, onDateClick, onToggle, onDelete }) {
   const weekDays = getWeekDays(currentDate)
-  const today = new Date().toISOString().split('T')[0]
+  const today = toLocalDateStr(new Date())
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-3">
       {weekDays.map(day => {
-        const dayStr = day.toISOString().split('T')[0]
+        const dayStr = toLocalDateStr(day)
         const daySessions = sessions.filter(s => s.date === dayStr).sort((a, b) => a.start_time.localeCompare(b.start_time))
         const isToday = dayStr === today
         const isPast = dayStr < today
