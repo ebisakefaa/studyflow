@@ -1,4 +1,4 @@
-﻿import { useState } from 'react'
+import { useState } from 'react'
 import { useAuth } from '../../hooks/useAuth'
 import { useToast } from '../../hooks/useToast'
 
@@ -9,7 +9,8 @@ export default function AuthForm() {
   const [fullName, setFullName] = useState('')
   const [errors, setErrors] = useState({})
   const [loading, setLoading] = useState(false)
-  const { signUp, signIn } = useAuth()
+  const [googleLoading, setGoogleLoading] = useState(false)
+  const { signUp, signIn, signInWithGoogle } = useAuth()
   const { addToast } = useToast()
 
   function validate() {
@@ -33,12 +34,23 @@ export default function AuthForm() {
       } else {
         const { error } = await signUp(email, password, fullName.trim())
         if (error) throw error
-        addToast('Account created! Check your email to confirm.', 'success')
+        addToast('Account created successfully!', 'success')
       }
     } catch (err) {
       addToast(err.message, 'error')
     } finally {
       setLoading(false)
+    }
+  }
+
+  async function handleGoogleSignIn() {
+    setGoogleLoading(true)
+    try {
+      const { error } = await signInWithGoogle()
+      if (error) throw error
+    } catch (err) {
+      addToast(err.message, 'error')
+      setGoogleLoading(false)
     }
   }
 
@@ -73,7 +85,20 @@ export default function AuthForm() {
             <span className="font-display text-2xl font-bold">StudyFlow</span>
           </div>
           <h1 className="font-display text-3xl font-bold mb-2">{isLogin ? 'Welcome back' : 'Create your account'}</h1>
-          <p className="text-muted mb-8">{isLogin ? 'Sign in to access your workspace' : 'Get started with StudyFlow for free'}</p>
+          <p className="text-muted mb-6">{isLogin ? 'Sign in to access your workspace' : 'Get started with StudyFlow for free'}</p>
+
+          <button onClick={handleGoogleSignIn} disabled={googleLoading}
+            className="w-full flex items-center justify-center gap-3 py-3 bg-s2 border border-bdr rounded-lg text-sm font-medium text-txt hover:bg-s3 transition-colors mb-5 disabled:opacity-50">
+            {googleLoading ? <i className="fa-solid fa-spinner fa-spin"></i> : <i className="fa-brands fa-google"></i>}
+            Continue with Google
+          </button>
+
+          <div className="flex items-center gap-3 mb-5">
+            <div className="flex-1 h-px bg-bdr"></div>
+            <span className="text-xs text-muted">or continue with email</span>
+            <div className="flex-1 h-px bg-bdr"></div>
+          </div>
+
           <form onSubmit={handleSubmit} className="flex flex-col gap-5" noValidate>
             {!isLogin && (
               <div>
@@ -96,7 +121,7 @@ export default function AuthForm() {
               {errors.password && <p className="text-danger text-xs mt-1">{errors.password}</p>}
             </div>
             <button type="submit" disabled={loading}
-              className="w-full py-3 bg-accent hover:bg-accent-l text-bg font-display font-semibold rounded-lg transition-colors mt-2 disabled:opacity-50">
+              className="w-full py-3 bg-accent hover:bg-accent-l text-bg font-display font-semibold rounded-lg transition-colors disabled:opacity-50">
               {loading ? 'Please wait...' : (isLogin ? 'Sign In' : 'Create Account')}
             </button>
           </form>
