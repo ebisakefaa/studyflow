@@ -1,4 +1,4 @@
-export default function Sidebar({ courses, activeCourseId, onCourseClick, onNewCourse, onProfileClick, user, onLogout, minimized, onToggle }) {
+export default function Sidebar({ courses, activeCourseId, onCourseClick, onNewCourse, onProfileClick, onPlannerClick, user, onLogout, minimized, onToggle }) {
   return (
     <aside className={'fixed top-0 left-0 z-40 h-screen bg-s1 border-r border-bdr flex flex-col shrink-0 transition-all duration-300 ' + (minimized ? 'w-16' : 'w-64')}>
       <div className={'flex items-center gap-2.5 ' + (minimized ? 'p-4 justify-center' : 'p-5')}>
@@ -20,11 +20,20 @@ export default function Sidebar({ courses, activeCourseId, onCourseClick, onNewC
       <nav className="flex-1 px-2 overflow-y-auto overflow-x-hidden">
         <button
           onClick={() => onCourseClick(null)}
-          className={'w-full flex items-center gap-3 rounded-lg text-sm font-medium transition-colors hover:bg-s2 mb-1 ' + (minimized ? 'p-2.5 justify-center' : 'px-3 py-2.5') + (!activeCourseId || activeCourseId === '__profile__' ? '' : '') + (activeCourseId === null ? ' bg-s2 text-txt' : ' text-muted hover:text-txt')}
+          className={'w-full flex items-center gap-3 rounded-lg text-sm font-medium transition-colors hover:bg-s2 mb-1 ' + (minimized ? 'p-2.5 justify-center' : 'px-3 py-2.5') + (activeCourseId === null ? ' bg-s2 text-txt' : ' text-muted hover:text-txt')}
           title={minimized ? 'Dashboard' : ''}
         >
           <i className="fa-solid fa-grip w-4 text-center shrink-0"></i>
           {!minimized && <span>Dashboard</span>}
+        </button>
+
+        <button
+          onClick={onPlannerClick}
+          className={'w-full flex items-center gap-3 rounded-lg text-sm font-medium transition-colors hover:bg-s2 mb-1 ' + (minimized ? 'p-2.5 justify-center' : 'px-3 py-2.5') + (activeCourseId === '__planner__' ? ' bg-s2 text-txt' : ' text-muted hover:text-txt')}
+          title={minimized ? 'Study Planner' : ''}
+        >
+          <i className="fa-solid fa-calendar-days w-4 text-center shrink-0"></i>
+          {!minimized && <span>Study Planner</span>}
         </button>
 
         {!minimized && (

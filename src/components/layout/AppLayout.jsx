@@ -2,7 +2,7 @@ import { useState } from 'react'
 import Sidebar from './Sidebar'
 import MobileHeader from './MobileHeader'
 
-export default function AppLayout({ children, courses, activeCourseId, onCourseClick, onNewCourse, onProfileClick, user, onLogout, onMenuClick }) {
+export default function AppLayout({ children, courses, activeCourseId, onCourseClick, onNewCourse, onProfileClick, onPlannerClick, user, onLogout, onMenuClick }) {
   const [minimized, setMinimized] = useState(false)
 
   function toggleSidebar() {
@@ -17,6 +17,7 @@ export default function AppLayout({ children, courses, activeCourseId, onCourseC
         onCourseClick={onCourseClick}
         onNewCourse={onNewCourse}
         onProfileClick={onProfileClick}
+        onPlannerClick={onPlannerClick}
         user={user}
         onLogout={onLogout}
         minimized={minimized}
