@@ -110,7 +110,7 @@ export default function AuthForm() {
             )}
             <div>
               <label className="block text-sm text-muted mb-1.5">Email Address</label>
-              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@university.edu"
+              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@gmail.com or you@university.edu"
                 className="w-full px-4 py-3 bg-s2 border border-bdr rounded-lg text-txt placeholder-muted/50 font-body" />
               {errors.email && <p className="text-danger text-xs mt-1">{errors.email}</p>}
             </div>
