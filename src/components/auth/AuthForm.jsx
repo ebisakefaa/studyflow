@@ -3,45 +3,9 @@ import { useAuth } from '../../hooks/useAuth'
 import { useToast } from '../../hooks/useToast'
 
 export default function AuthForm() {
-  const [isLogin, setIsLogin] = useState(true)
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [fullName, setFullName] = useState('')
-  const [errors, setErrors] = useState({})
-  const [loading, setLoading] = useState(false)
   const [googleLoading, setGoogleLoading] = useState(false)
-  const { signUp, signIn, signInWithGoogle } = useAuth()
+  const { signInWithGoogle } = useAuth()
   const { addToast } = useToast()
-
-  function validate() {
-    const errs = {}
-    if (!isLogin && !fullName.trim()) errs.name = 'Please enter your name'
-    if (!email.trim() || !/\S+@\S+\.\S+/.test(email)) errs.email = 'Please enter a valid email'
-    if (password.length < 6) errs.password = 'Password must be at least 6 characters'
-    setErrors(errs)
-    return Object.keys(errs).length === 0
-  }
-
-  async function handleSubmit(e) {
-    e.preventDefault()
-    if (!validate()) return
-    setLoading(true)
-    try {
-      if (isLogin) {
-        const { error } = await signIn(email, password)
-        if (error) throw error
-        addToast('Welcome back!', 'success')
-      } else {
-        const { error } = await signUp(email, password, fullName.trim())
-        if (error) throw error
-        addToast('Account created successfully!', 'success')
-      }
-    } catch (err) {
-      addToast(err.message, 'error')
-    } finally {
-      setLoading(false)
-    }
-  }
 
   async function handleGoogleSignIn() {
     setGoogleLoading(true)
@@ -77,60 +41,21 @@ export default function AuthForm() {
         </div>
       </div>
       <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12">
-        <div className="w-full max-w-md">
-          <div className="lg:hidden flex items-center gap-2 mb-8">
+        <div className="w-full max-w-md text-center">
+          <div className="lg:hidden flex items-center justify-center gap-2 mb-8">
             <div className="w-9 h-9 rounded-lg bg-accent flex items-center justify-center">
               <i className="fa-solid fa-book-open text-bg text-sm"></i>
             </div>
             <span className="font-display text-2xl font-bold">StudyFlow</span>
           </div>
-          <h1 className="font-display text-3xl font-bold mb-2">{isLogin ? 'Welcome back' : 'Create your account'}</h1>
-          <p className="text-muted mb-6">{isLogin ? 'Sign in to access your workspace' : 'Get started with StudyFlow for free'}</p>
-
+          <h1 className="font-display text-3xl font-bold mb-2">Welcome to StudyFlow</h1>
+          <p className="text-muted mb-8">Sign in with your Google account to get started.</p>
           <button onClick={handleGoogleSignIn} disabled={googleLoading}
-            className="w-full flex items-center justify-center gap-3 py-3 bg-s2 border border-bdr rounded-lg text-sm font-medium text-txt hover:bg-s3 transition-colors mb-5 disabled:opacity-50">
+            className="w-full flex items-center justify-center gap-3 py-3.5 bg-s2 border border-bdr rounded-xl text-sm font-medium text-txt hover:bg-s3 transition-colors disabled:opacity-50">
             {googleLoading ? <i className="fa-solid fa-spinner fa-spin"></i> : <i className="fa-brands fa-google"></i>}
             Continue with Google
           </button>
-
-          <div className="flex items-center gap-3 mb-5">
-            <div className="flex-1 h-px bg-bdr"></div>
-            <span className="text-xs text-muted">or continue with email</span>
-            <div className="flex-1 h-px bg-bdr"></div>
-          </div>
-
-          <form onSubmit={handleSubmit} className="flex flex-col gap-5" noValidate>
-            {!isLogin && (
-              <div>
-                <label className="block text-sm text-muted mb-1.5">Full Name</label>
-                <input type="text" value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Your full name"
-                  className="w-full px-4 py-3 bg-s2 border border-bdr rounded-lg text-txt placeholder-muted/50 font-body" />
-                {errors.name && <p className="text-danger text-xs mt-1">{errors.name}</p>}
-              </div>
-            )}
-            <div>
-              <label className="block text-sm text-muted mb-1.5">Email Address</label>
-              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@gmail.com or you@university.edu"
-                className="w-full px-4 py-3 bg-s2 border border-bdr rounded-lg text-txt placeholder-muted/50 font-body" />
-              {errors.email && <p className="text-danger text-xs mt-1">{errors.email}</p>}
-            </div>
-            <div>
-              <label className="block text-sm text-muted mb-1.5">Password</label>
-              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Min. 6 characters"
-                className="w-full px-4 py-3 bg-s2 border border-bdr rounded-lg text-txt placeholder-muted/50 font-body" />
-              {errors.password && <p className="text-danger text-xs mt-1">{errors.password}</p>}
-            </div>
-            <button type="submit" disabled={loading}
-              className="w-full py-3 bg-accent hover:bg-accent-l text-bg font-display font-semibold rounded-lg transition-colors disabled:opacity-50">
-              {loading ? 'Please wait...' : (isLogin ? 'Sign In' : 'Create Account')}
-            </button>
-          </form>
-          <p className="text-center text-muted text-sm mt-6">
-            {isLogin ? "Don't have an account?" : 'Already have an account?'}
-            <button onClick={() => { setIsLogin(!isLogin); setErrors({}) }} className="text-accent hover:text-accent-l font-medium ml-1 transition-colors">
-              {isLogin ? 'Create one' : 'Sign in'}
-            </button>
-          </p>
+          <p className="text-muted/40 text-xs mt-6">By continuing, you agree to our Terms of Service and Privacy Policy.</p>
         </div>
       </div>
     </div>
