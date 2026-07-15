@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom'
 import { AuthProvider, useAuth } from './hooks/useAuth'
 import { ToastProvider } from './hooks/useToast'
@@ -7,6 +7,7 @@ import AuthForm from './components/auth/AuthForm'
 import AppLayout from './components/layout/AppLayout'
 import Dashboard from './pages/Dashboard'
 import CourseDetail from './pages/CourseDetail'
+import Profile from './pages/Profile'
 import NotFound from './pages/NotFound'
 
 function ProtectedRoute({ children }) {
@@ -45,6 +46,11 @@ function AppRoutes() {
     setSidebarOpen(false)
   }
 
+  function handleProfileClick() {
+    navigate('/profile')
+    setSidebarOpen(false)
+  }
+
   async function handleLogout() {
     await signOut()
     navigate('/auth')
@@ -63,15 +69,22 @@ function AppRoutes() {
       <Route path="/auth" element={<PublicRoute><AuthForm /></PublicRoute>} />
       <Route path="/" element={
         <ProtectedRoute>
-          <AppLayout courses={courses} activeCourseId={activeCourseId} onCourseClick={handleCourseClick} onNewCourse={() => navigate('/')} user={user} onLogout={handleLogout} onMenuClick={handleMenuClick}>
+          <AppLayout courses={courses} activeCourseId={activeCourseId} onCourseClick={handleCourseClick} onNewCourse={() => navigate('/')} user={user} onLogout={handleLogout} onMenuClick={handleMenuClick} onProfileClick={handleProfileClick}>
             <Dashboard user={user} onNavigateCourse={(id) => navigate('/course/' + id)} />
           </AppLayout>
         </ProtectedRoute>
       } />
       <Route path="/course/:courseId" element={
         <ProtectedRoute>
-          <AppLayout courses={courses} activeCourseId={activeCourseId} onCourseClick={handleCourseClick} onNewCourse={() => navigate('/')} user={user} onLogout={handleLogout} onMenuClick={handleMenuClick}>
+          <AppLayout courses={courses} activeCourseId={activeCourseId} onCourseClick={handleCourseClick} onNewCourse={() => navigate('/')} user={user} onLogout={handleLogout} onMenuClick={handleMenuClick} onProfileClick={handleProfileClick}>
             <CourseDetail courseId={activeCourseId} user={user} onBack={() => navigate('/')} />
+          </AppLayout>
+        </ProtectedRoute>
+      } />
+      <Route path="/profile" element={
+        <ProtectedRoute>
+          <AppLayout courses={courses} activeCourseId={null} onCourseClick={handleCourseClick} onNewCourse={() => navigate('/')} user={user} onLogout={handleLogout} onMenuClick={handleMenuClick} onProfileClick={handleProfileClick}>
+            <Profile user={user} onBack={() => navigate('/')} />
           </AppLayout>
         </ProtectedRoute>
       } />

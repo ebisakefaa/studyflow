@@ -1,9 +1,7 @@
-import { useState } from 'react'
-
-export default function Sidebar({ courses, activeCourseId, onCourseClick, onNewCourse, user, onLogout, minimized, onToggle }) {
+export default function Sidebar({ courses, activeCourseId, onCourseClick, onNewCourse, onProfileClick, user, onLogout, minimized, onToggle }) {
   return (
     <aside className={'fixed top-0 left-0 z-40 h-screen bg-s1 border-r border-bdr flex flex-col shrink-0 transition-all duration-300 ' + (minimized ? 'w-16' : 'w-64')}>
-      <div className={'flex items-center gap-2.5 p-4 ' + (minimized ? 'justify-center' : 'p-5')}>
+      <div className={'flex items-center gap-2.5 ' + (minimized ? 'p-4 justify-center' : 'p-5')}>
         {!minimized && (
           <>
             <div className="w-8 h-8 rounded-lg bg-accent flex items-center justify-center shrink-0">
@@ -22,7 +20,7 @@ export default function Sidebar({ courses, activeCourseId, onCourseClick, onNewC
       <nav className="flex-1 px-2 overflow-y-auto overflow-x-hidden">
         <button
           onClick={() => onCourseClick(null)}
-          className={'w-full flex items-center gap-3 rounded-lg text-sm font-medium transition-colors hover:bg-s2 mb-1 ' + (minimized ? 'p-2.5 justify-center' : 'px-3 py-2.5') + (!activeCourseId ? ' bg-s2 text-txt' : ' text-muted hover:text-txt')}
+          className={'w-full flex items-center gap-3 rounded-lg text-sm font-medium transition-colors hover:bg-s2 mb-1 ' + (minimized ? 'p-2.5 justify-center' : 'px-3 py-2.5') + (!activeCourseId || activeCourseId === '__profile__' ? '' : '') + (activeCourseId === null ? ' bg-s2 text-txt' : ' text-muted hover:text-txt')}
           title={minimized ? 'Dashboard' : ''}
         >
           <i className="fa-solid fa-grip w-4 text-center shrink-0"></i>
@@ -64,6 +62,14 @@ export default function Sidebar({ courses, activeCourseId, onCourseClick, onNewC
       </nav>
 
       <div className="p-2 border-t border-bdr">
+        <button
+          onClick={onProfileClick}
+          className={'w-full flex items-center gap-3 rounded-lg text-sm transition-colors hover:bg-s2 ' + (minimized ? 'p-2.5 justify-center' : 'px-3 py-2.5') + (activeCourseId === '__profile__' ? ' bg-s2 text-txt' : ' text-muted hover:text-txt')}
+          title={minimized ? 'Profile' : ''}
+        >
+          <i className="fa-solid fa-user w-4 text-center shrink-0"></i>
+          {!minimized && <span>Profile</span>}
+        </button>
         <button
           onClick={onToggle}
           className={'w-full flex items-center gap-3 rounded-lg text-sm text-muted hover:text-txt transition-colors ' + (minimized ? 'p-2.5 justify-center' : 'px-3 py-2.5')}
