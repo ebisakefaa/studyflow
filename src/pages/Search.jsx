@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { useToast } from '../hooks/useToast'
-import { formatDate } from '../lib/utils'
 import EmptyState from '../components/ui/EmptyState'
 
 export default function Search({ onBack }) {
@@ -21,18 +20,50 @@ export default function Search({ onBack }) {
     setSearched(true)
 
     try {
-      const [cRes, sRes] = await Promise.all([
+      const [cRes, dRes] = await Promise.all([
         supabase.from('courses').select('id, name, color').eq('user_id', user.id),
-        fetch('/api/ai/search', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ query: query.trim(), userId: user.id })
-        }).then(r => r.json())
+        supabase.from('documents').select('id, name, course_id, extracted_text').eq('user_id', user.id)
       ])
 
       setCourses(cRes.data || [])
-      if (sRes.error) throw new Error(sRes.error)
-      setResults(sRes.results || [])
+      const docs = dRes.data || []
+      const keywords = query.toLowerCase().split(/\s+/).filter(w => w.length > 2)
+
+      if (keywords.length === 0) {
+        setResults([])
+        setSearching(false)
+        return
+      }
+
+      const matched = docs.filter(doc => {
+        const text = (doc.extracted_text || '').toLowerCase()
+        return keywords.some(k => text.includes(k))
+      })
+
+      const results = matched.map(doc => {
+        const text = doc.extracted_text || ''
+        const lowerText = text.toLowerCase()
+        const matches = []
+        for (const keyword of keywords) {
+          const idx = lowerText.indexOf(keyword)
+          if (idx !== -1) {
+            const start = Math.max(0, idx - 60)
+            const end = Math.min(text.length, idx + keyword.length + 60)
+            let snippet = text.slice(start, end).replace(/\s+/g, ' ').trim()
+            if (start > 0) snippet = '...' + snippet
+            if (end < text.length) snippet = snippet + '...'
+            matches.push(snippet)
+          }
+        }
+        return {
+          id: doc.id,
+          name: doc.name,
+          course_id: doc.course_id,
+          snippets: matches.slice(0, 3)
+        }
+      })
+
+      setResults(results)
     } catch (err) {
       addToast(err.message, 'error')
       setResults([])
@@ -71,7 +102,7 @@ export default function Search({ onBack }) {
       )}
 
       {!searching && searched && results.length === 0 && (
-        <EmptyState icon="fa-magnifying-glass" title="No results found" description="Try different keywords or check if your documents have been processed." />
+        <EmptyState icon="fa-magnifying-glass" title="No results found" description="Try different keywords or re-upload your PDFs to index their text." />
       )}
 
       {!searching && results.length > 0 && (
@@ -99,10 +130,7 @@ export default function Search({ onBack }) {
                   {r.snippets.length > 0 && (
                     <div className="flex flex-col gap-2">
                       {r.snippets.map((snippet, si) => (
-                        <div key={si} className="bg-s1 border border-bdr rounded-lg p-3 text-sm text-muted leading-relaxed">
-                          <span className="text-accent font-medium">Match {si + 1}:</span>{' '}
-                          <span className="text-txt/70">{highlightMatch(snippet, query)}</span>
-                        </div>
+                        <div key={si} className="bg-s1 border border-bdr rounded-lg p-3 text-sm text-muted leading-relaxed" dangerouslySetInnerHTML={{ __html: '<span class="text-accent font-medium">Match ' + (si + 1) + ':</span> ' + highlightMatch(snippet, query) }} />
                       ))}
                     </div>
                   )}
