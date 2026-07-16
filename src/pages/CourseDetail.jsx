@@ -1,7 +1,9 @@
-﻿import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
+import { useAuth } from '../hooks/useAuth'
 import { useToast } from '../hooks/useToast'
 import { formatSize, formatDate } from '../lib/utils'
+import { extractTextFromPdf } from '../lib/pdfExtractor'
 import UploadModal from '../components/documents/UploadModal'
 import EditTagsModal from '../components/documents/EditTagsModal'
 import DeleteDocModal from '../components/documents/DeleteDocModal'
@@ -38,10 +40,18 @@ export default function CourseDetail({ courseId, user, onBack }) {
     const { error: uploadErr } = await supabase.storage.from('documents').upload(filePath, file)
     if (uploadErr) { addToast(uploadErr.message, 'error'); return }
     const { data: urlData } = supabase.storage.from('documents').getPublicUrl(filePath)
+
+    let extractedText = ''
+    try {
+      extractedText = await extractTextFromPdf(urlData.publicUrl)
+    } catch (e) {
+      extractedText = ''
+    }
+
     const { error: dbErr } = await supabase.from('documents').insert({
       user_id: user.id, course_id: courseId, name: file.name,
       storage_path: filePath, file_url: urlData.publicUrl,
-      size: file.size, tags
+      size: file.size, tags, extracted_text: extractedText
     })
     if (dbErr) { addToast(dbErr.message, 'error'); return }
     addToast('"' + file.name + '" uploaded', 'success')
