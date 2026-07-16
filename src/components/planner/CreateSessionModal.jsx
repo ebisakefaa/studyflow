@@ -1,10 +1,15 @@
 import { useState } from 'react'
 import Modal from '../ui/Modal'
 
+function localDateStr() {
+  const d = new Date()
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0')
+}
+
 export default function CreateSessionModal({ open, onClose, courses, defaultDate, onCreate }) {
   const [courseId, setCourseId] = useState('')
   const [title, setTitle] = useState('')
-  const [date, setDate] = useState(defaultDate || new Date().toISOString().split('T')[0])
+  const [date, setDate] = useState(defaultDate || localDateStr())
   const [startTime, setStartTime] = useState('09:00')
   const [endTime, setEndTime] = useState('10:00')
 

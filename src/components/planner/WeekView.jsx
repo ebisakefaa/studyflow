@@ -1,17 +1,19 @@
 function toLocalDateStr(d) {
-  const y = d.getFullYear()
-  const m = String(d.getMonth() + 1).padStart(2, '0')
-  const day = String(d.getDate()).padStart(2, '0')
-  return y + '-' + m + '-' + day
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0')
 }
 
-export default function WeekView({ sessions, courses, currentDate, onDateClick, onToggle, onDelete }) {
-  const weekDays = getWeekDays(currentDate)
+export default function WeekView({ sessions, courses, weekMonday, onDateClick, onToggle, onDelete }) {
   const today = toLocalDateStr(new Date())
+  const days = []
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(weekMonday)
+    d.setDate(weekMonday.getDate() + i)
+    days.push(d)
+  }
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-3">
-      {weekDays.map(day => {
+      {days.map(day => {
         const dayStr = toLocalDateStr(day)
         const daySessions = sessions.filter(s => s.date === dayStr).sort((a, b) => a.start_time.localeCompare(b.start_time))
         const isToday = dayStr === today
@@ -62,18 +64,4 @@ export default function WeekView({ sessions, courses, currentDate, onDateClick, 
       })}
     </div>
   )
-}
-
-function getWeekDays(date) {
-  const d = new Date(date)
-  const day = d.getDay()
-  const monday = new Date(d)
-  monday.setDate(d.getDate() - ((day + 6) % 7))
-  const days = []
-  for (let i = 0; i < 7; i++) {
-    const day = new Date(monday)
-    day.setDate(monday.getDate() + i)
-    days.push(day)
-  }
-  return days
 }
