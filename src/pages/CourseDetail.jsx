@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useLocation } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { useToast } from '../hooks/useToast'
@@ -12,6 +13,8 @@ import PdfViewer from '../components/documents/PdfViewer'
 import EmptyState from '../components/ui/EmptyState'
 
 export default function CourseDetail({ courseId, user, onBack }) {
+  const location = useLocation()
+  const { addToast } = useToast()
   const [course, setCourse] = useState(null)
   const [docs, setDocs] = useState([])
   const [loading, setLoading] = useState(true)
@@ -22,7 +25,13 @@ export default function CourseDetail({ courseId, user, onBack }) {
   const [deleteDoc, setDeleteDoc] = useState(null)
   const [deleteCourseOpen, setDeleteCourseOpen] = useState(false)
   const [viewDoc, setViewDoc] = useState(null)
-  const { addToast } = useToast()
+
+  useEffect(() => {
+    if (location.state?.openDoc) {
+      setViewDoc(location.state.openDoc)
+      window.history.replaceState({}, '')
+    }
+  }, [location.state])
 
   async function fetchData() {
     setLoading(true)
@@ -40,14 +49,8 @@ export default function CourseDetail({ courseId, user, onBack }) {
     const { error: uploadErr } = await supabase.storage.from('documents').upload(filePath, file)
     if (uploadErr) { addToast(uploadErr.message, 'error'); return }
     const { data: urlData } = supabase.storage.from('documents').getPublicUrl(filePath)
-
     let extractedText = ''
-    try {
-      extractedText = await extractTextFromPdf(urlData.publicUrl)
-    } catch (e) {
-      extractedText = ''
-    }
-
+    try { extractedText = await extractTextFromPdf(urlData.publicUrl) } catch (e) { extractedText = '' }
     const { error: dbErr } = await supabase.from('documents').insert({
       user_id: user.id, course_id: courseId, name: file.name,
       storage_path: filePath, file_url: urlData.publicUrl,
@@ -84,17 +87,13 @@ export default function CourseDetail({ courseId, user, onBack }) {
   }
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center py-20 text-muted">
-        <i className="fa-solid fa-spinner fa-spin mr-3 text-accent"></i> Loading...
-      </div>
-    )
+    return <div className="flex items-center justify-center py-20 text-muted"><i className="fa-solid fa-spinner fa-spin mr-3 text-accent"></i> Loading...</div>
   }
 
   if (!course) { onBack(); return null }
 
   if (viewDoc) {
-    return <PdfViewer url={viewDoc.file_url} name={viewDoc.name} onClose={() => setViewDoc(null)} />
+    return <PdfViewer url={viewDoc.file_url} name={viewDoc.name} searchKeyword={location.state?.searchKeyword || null} onClose={() => setViewDoc(null)} />
   }
 
   const allTags = [...new Set(docs.flatMap(d => d.tags || []))].sort()
@@ -150,13 +149,7 @@ export default function CourseDetail({ courseId, user, onBack }) {
       )}
 
       {filtered.length === 0 ? (
-        <EmptyState
-          icon="fa-file-circle-plus"
-          title={search || tagFilter ? 'No matching documents' : 'No documents yet'}
-          description={search || tagFilter ? 'Try adjusting your search or filter.' : 'Upload your first PDF to get started.'}
-          action={!search && !tagFilter ? () => setUploadOpen(true) : null}
-          actionLabel="Upload PDF"
-        />
+        <EmptyState icon="fa-file-circle-plus" title={search || tagFilter ? 'No matching documents' : 'No documents yet'} description={search || tagFilter ? 'Try adjusting your search or filter.' : 'Upload your first PDF to get started.'} action={!search && !tagFilter ? () => setUploadOpen(true) : null} actionLabel="Upload PDF" />
       ) : (
         <div className="bg-s2 border border-bdr rounded-xl overflow-hidden">
           <div className="hidden sm:grid grid-cols-12 gap-4 px-5 py-2.5 text-xs font-semibold text-muted/50 uppercase tracking-wider border-b border-bdr">

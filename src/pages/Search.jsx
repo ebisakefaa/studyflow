@@ -24,7 +24,7 @@ export default function Search({ onBack }) {
     try {
       const [cRes, dRes] = await Promise.all([
         supabase.from('courses').select('id, name, color').eq('user_id', user.id),
-        supabase.from('documents').select('id, name, course_id, extracted_text').eq('user_id', user.id)
+        supabase.from('documents').select('id, name, course_id, file_url, extracted_text').eq('user_id', user.id)
       ])
 
       setCourses(cRes.data || [])
@@ -61,6 +61,7 @@ export default function Search({ onBack }) {
           id: doc.id,
           name: doc.name,
           course_id: doc.course_id,
+          file_url: doc.file_url,
           snippets: matches.slice(0, 3)
         }
       })
@@ -75,7 +76,9 @@ export default function Search({ onBack }) {
   }
 
   function openDocument(doc) {
-    navigate('/course/' + doc.course_id)
+    const keywords = query.toLowerCase().split(/\s+/).filter(w => w.length > 2)
+    const keyword = keywords[0] || query.trim()
+    navigate('/course/' + doc.course_id, { state: { openDoc: { id: doc.id, name: doc.name, file_url: doc.file_url }, searchKeyword: keyword } })
   }
 
   function getCourse(courseId) {

@@ -1,15 +1,63 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Document, Page, pdfjs } from 'react-pdf'
 import AiPanel from '../ai/AiPanel'
 
 pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs'
 
-export default function PdfViewer({ url, name, onClose }) {
+export default function PdfViewer({ url, name, searchKeyword, onClose }) {
   const [numPages, setNumPages] = useState(null)
+  const [pageNumber, setPageNumber] = useState(1)
   const [scale, setScale] = useState(1.2)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
   const [showAi, setShowAi] = useState(false)
+  const [findingPage, setFindingPage] = useState(false)
+  const [pageRefs, setPageRefs] = useState({})
+  const containerRef = useRef(null)
+
+  useEffect(() => {
+    if (!searchKeyword || !numPages) return
+    findPageWithKeyword(searchKeyword)
+  }, [searchKeyword, numPages])
+
+  async function findPageWithKeyword(keyword) {
+    if (!keyword) return
+    setFindingPage(true)
+    try {
+      const pdf = await pdfjs.getDocument(url).promise
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i)
+        const content = await page.getTextContent()
+        const text = content.items.map(item => item.str).join(' ').toLowerCase()
+        if (text.includes(keyword.toLowerCase())) {
+          setPageNumber(i)
+          setTimeout(() => {
+            const el = pageRefs['page-' + i]
+            if (el) {
+              el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+            } else if (containerRef.current) {
+              const allPages = containerRef.current.querySelectorAll('[data-page-num]')
+              allPages.forEach(p => {
+                if (parseInt(p.dataset.pageNum) === i) {
+                  p.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                }
+              })
+            }
+          }, 500)
+          break
+        }
+      }
+    } catch (e) {
+      console.error('Failed to find page:', e)
+    }
+    setFindingPage(false)
+  }
+
+  function setPageRef(num) {
+    return (el) => {
+      if (el) pageRefs['page-' + num] = el
+    }
+  }
 
   function onDocumentLoadSuccess({ numPages }) {
     setNumPages(numPages)
@@ -50,6 +98,11 @@ export default function PdfViewer({ url, name, onClose }) {
           <i className="fa-solid fa-plus text-xs"></i>
         </button>
         <div className="flex-1"></div>
+        {findingPage && (
+          <span className="text-sm text-accent flex items-center gap-2">
+            <i className="fa-solid fa-spinner fa-spin text-xs"></i> Finding page...
+          </span>
+        )}
         <button onClick={() => window.open(url, '_blank')} className="text-sm text-muted hover:text-accent transition-colors" title="Open in new tab">
           <i className="fa-solid fa-up-right-from-square mr-1.5"></i>New Tab
         </button>
@@ -73,11 +126,11 @@ export default function PdfViewer({ url, name, onClose }) {
           </button>
         </div>
       ) : (
-        <div className="bg-s2 border border-bdr rounded-xl overflow-y-auto" style={{ maxHeight: '60vh' }}>
+        <div ref={containerRef} className="bg-s2 border border-bdr rounded-xl overflow-y-auto" style={{ maxHeight: '60vh' }}>
           <div className="flex flex-col items-center p-4 gap-4">
             <Document file={url} onLoadSuccess={onDocumentLoadSuccess} onLoadError={onDocumentLoadError} loading={null}>
               {Array.from({ length: numPages || 0 }, (_, i) => (
-                <div key={i} className="w-full flex flex-col items-center">
+                <div key={i} ref={setPageRef(i + 1)} data-page-num={i + 1} className="w-full flex flex-col items-center" style={{ outline: searchKeyword && pageNumber === i + 1 ? '2px solid var(--color-accent)' : 'none', outlineOffset: '-2px', borderRadius: '8px', transition: 'outline 0.5s ease' }}>
                   <div className="text-xs text-muted/40 mb-1">Page {i + 1}</div>
                   <Page pageNumber={i + 1} scale={scale} renderTextLayer={false} renderAnnotationLayer={false} />
                 </div>
