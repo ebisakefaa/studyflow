@@ -1,3 +1,8 @@
+import { createClient } from '@supabase/supabase-js'
+
+const supabaseUrl = process.env.VITE_SUPABASE_URL
+const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
 
@@ -5,9 +10,6 @@ export default async function handler(req, res) {
   if (!query || !userId) return res.status(400).json({ error: 'Missing query or userId' })
 
   try {
-    const { createClient } = await import('@supabase/supabase-js')
-    const supabaseUrl = process.env.VITE_SUPABASE_URL
-    const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY
     const supabase = createClient(supabaseUrl, supabaseKey)
 
     const keywords = query.toLowerCase().split(/\s+/).filter(w => w.length > 2)
