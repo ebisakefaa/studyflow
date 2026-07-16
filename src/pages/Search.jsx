@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { useToast } from '../hooks/useToast'
@@ -7,6 +8,7 @@ import EmptyState from '../components/ui/EmptyState'
 export default function Search({ onBack }) {
   const { user } = useAuth()
   const { addToast } = useToast()
+  const navigate = useNavigate()
   const [query, setQuery] = useState('')
   const [results, setResults] = useState([])
   const [courses, setCourses] = useState([])
@@ -40,7 +42,7 @@ export default function Search({ onBack }) {
         return keywords.some(k => text.includes(k))
       })
 
-      const results = matched.map(doc => {
+      const searchResults = matched.map(doc => {
         const text = doc.extracted_text || ''
         const lowerText = text.toLowerCase()
         const matches = []
@@ -63,13 +65,17 @@ export default function Search({ onBack }) {
         }
       })
 
-      setResults(results)
+      setResults(searchResults)
     } catch (err) {
       addToast(err.message, 'error')
       setResults([])
     }
 
     setSearching(false)
+  }
+
+  function openDocument(doc) {
+    navigate('/course/' + doc.course_id)
   }
 
   function getCourse(courseId) {
@@ -112,13 +118,13 @@ export default function Search({ onBack }) {
             {results.map((r, i) => {
               const course = getCourse(r.course_id)
               return (
-                <div key={r.id} className="bg-s2 border border-bdr rounded-xl p-5">
+                <div key={r.id} onClick={() => openDocument(r)} className="bg-s2 border border-bdr rounded-xl p-5 cursor-pointer hover:border-accent/30 transition-colors group">
                   <div className="flex items-center gap-3 mb-3">
                     <div className="w-9 h-9 rounded-lg bg-danger/10 flex items-center justify-center shrink-0">
                       <i className="fa-solid fa-file-pdf text-danger text-sm"></i>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium truncate">{r.name}</div>
+                      <div className="text-sm font-medium truncate group-hover:text-accent transition-colors">{r.name}</div>
                       {course && (
                         <div className="flex items-center gap-1.5 mt-0.5">
                           <span className="w-2 h-2 rounded-full" style={{ backgroundColor: course.color }}></span>
@@ -126,6 +132,7 @@ export default function Search({ onBack }) {
                         </div>
                       )}
                     </div>
+                    <i className="fa-solid fa-arrow-right text-xs text-muted/30 group-hover:text-accent transition-colors"></i>
                   </div>
                   {r.snippets.length > 0 && (
                     <div className="flex flex-col gap-2">
