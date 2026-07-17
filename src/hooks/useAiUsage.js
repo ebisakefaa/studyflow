@@ -1,9 +1,17 @@
 import { useState, useEffect } from 'react'
-import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.VITE_SUPABASE_URL || ''
-const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || ''
-const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null
+const SUPABASE_URL = process.env.VITE_SUPABASE_URL || ''
+const SUPABASE_KEY = process.env.VITE_SUPABASE_ANON_KEY || ''
+
+async function checkSubscription(userId) {
+  if (!userId || !SUPABASE_URL || !SUPABASE_KEY) return false
+  try {
+    const res = await fetch(SUPABASE_URL + '/rest/v1/rpc/subscriptions?select=id,status,end_date&user_id=eq.' + userId + '&status=eq.active&end_date=gte.' + new Date().toISOString(),
+      { headers: { 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json' })
+    const { data } = await res.json()
+    return data && data.length > 0
+  } catch { return false }
+}
 
 const FREE_LIMIT = 10
 
@@ -12,21 +20,13 @@ export function useAiUsage(userId) {
   const [freeUsed, setFreeUsed] = useState(0)
 
   useEffect(() => {
-    if (!userId || !supabase) return
+    if (!userId) return
     const stored = localStorage.getItem('sf_ai_usage')
     if (stored) {
       const all = JSON.parse(stored)
       setFreeUsed(all[userId]?.total || 0)
     }
-
-    supabase.from('subscriptions').select('id, status, end_date')
-      .eq('user_id', userId)
-      .eq('status', 'active')
-      .gte('end_date', new Date().toISOString())
-      .then(({ data }) => {
-        setIsPremium(data && data.length > 0)
-      })
-      .catch(() => setIsPremium(false))
+    checkSubscription(userId).then(premium => setIsPremium(premium))
   }, [userId])
 
   function canUse() {
