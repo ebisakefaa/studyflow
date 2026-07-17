@@ -7,6 +7,9 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+  optimizeDeps: {
+    include: ['@supabase/supabase-js', 'react-pdf', 'pdfjs-dist']
+  },
   server: {
     proxy: {
       '/api': {
@@ -15,4 +18,4 @@ export default defineConfig({
       }
     }
   }
-})
+}
