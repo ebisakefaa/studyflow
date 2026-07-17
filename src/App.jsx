@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom'
 import { AuthProvider, useAuth } from './hooks/useAuth'
 import { ToastProvider } from './hooks/useToast'
+import { ThemeProvider } from './hooks/useTheme'
 import { supabase } from './lib/supabase'
 import AuthForm from './components/auth/AuthForm'
 import AppLayout from './components/layout/AppLayout'
@@ -76,9 +77,9 @@ export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <ToastProvider>
+        <ThemeProvider><ThemeProvider><ToastProvider>
           <AppRoutes />
-        </ToastProvider>
+        </ToastProvider></ThemeProvider></ThemeProvider>
       </AuthProvider>
     </BrowserRouter>
   )

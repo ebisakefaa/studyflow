@@ -1,1 +1,58 @@
 @import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-bg: var(--bg);
+  --color-txt: var(--txt);
+  --color-s1: var(--s1);
+  --color-s2: var(--s2);
+  --color-s3: var(--s3);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-muted: var(--muted);
+  --color-bdr: var(--bdr);
+  --color-danger: var(--danger);
+  --color-success: var(--success);
+  --color-sage: var(--sage);
+  
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-body: 'DM Sans', sans-serif;
+}
+
+:root {
+  --bg: #ffffff;
+  --txt: #1e293b;
+  --s1: #f0fdf4;
+  --s2: #dcfce7;
+  --s3: #bbf7d0;
+  --accent: #10b981;
+  --accent-hover: #059669;
+  --muted: #64748b;
+  --bdr: #dcfce7;
+  --danger: #ef4444;
+  --success: #10b981;
+  --sage: #94a3b8;
+}
+
+.dark {
+  --bg: #0f172a;
+  --txt: #f1f5f9;
+  --s1: #1e293b;
+  --s2: #334155;
+  --s3: #064e3b;
+  --accent: #34d399;
+  --accent-hover: #6ee7b7;
+  --muted: #94a3b8;
+  --bdr: #334155;
+  --danger: #f87171;
+  --success: #34d399;
+  --sage: #64748b;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--txt);
+  font-family: var(--font-body);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
