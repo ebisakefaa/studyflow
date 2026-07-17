@@ -4,7 +4,7 @@ import { useAuth } from '../hooks/useAuth'
 import { useToast } from '../hooks/useToast'
 import { useAiUsage } from '../hooks/useAiUsage'
 import { formatDate } from '../lib/utils'
-import EmptyState from '../components/ui/EmptyState'
+import PremiumModal from '../components/ui/PremiumModal'
 
 export default function Profile({ onBack }) {
   const { user, signOut } = useAuth()
@@ -122,27 +122,32 @@ export default function Profile({ onBack }) {
       </div>
 
       <div className="bg-s2 border border-bdr rounded-xl p-6 mb-4">
-        <h3 className="font-display font-semibold mb-4 flex items-center gap-2">
-          <i className="fa-solid fa-wand-magic-sparkles text-accent text-sm"></i> AI Usage {isPremium && <span className="text-xs px-2 py-0.5 rounded-full bg-accent/10 text-accent">Unlimited</span>}
-        </h3>
-        {isPremium ? (
-          <div className="text-sm text-muted">You have unlimited AI access with your Premium plan.</div>
-        ) : (
-          <>
-            <div className="flex items-center gap-4 mb-4">
-              <div className="flex-1">
-                <div className="flex justify-between text-sm mb-1.5">
-                  <span className="text-muted">{typeof getUsed() === 'number' ? getUsed() : getUsed()} of {FREE_LIMIT} used</span>
-                  <span className="text-muted">{typeof getRemaining() === 'number' ? getRemaining() : 'Unlimited'} remaining</span>
-                </div>
-                <div className="w-full h-2.5 bg-s1 rounded-full overflow-hidden">
-                  <div className="h-full rounded-full transition-all duration-500" style={{ width: (typeof getUsed() === 'number' ? getUsed() / FREE_LIMIT * 100 : 100) + '%', backgroundColor: typeof getRemaining() === 'number' && getRemaining() === 0 ? 'var(--color-danger)' : 'var(--color-accent)' }}></div>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-display font-semibold flex items-center gap-2">
+            <i className="fa-solid fa-wand-magic-sparkles text-accent text-sm"></i> AI Usage
+            {isPremium && <span className="text-xs px-2 py-0.5 rounded-full bg-accent/10 text-accent ml-2">Unlimited</span>}
+          </h3>
+          {isPremium ? (
+            <div className="text-sm text-muted">You have unlimited AI access with your Premium plan.</div>
+          ) : (
+            <>
+              <div className="flex items-center gap-4 mb-4">
+                <div className="flex-1">
+                  <div className="flex justify-between text-sm mb-1.5">
+                    <span className="text-muted">{getUsed()} of {FREE_LIMIT} used</span>
+                    <span className="text-muted">{getRemaining()} remaining</span>
+                  </div>
+                  <div className="w-full h-2.5 bg-s1 rounded-full overflow-hidden">
+                    <div className="h-full rounded-full transition-all duration-500" style={{ width: (getUsed() / FREE_LIMIT * 100) + '%', backgroundColor: getRemaining() === 0 ? 'var(--color-danger)' : 'var(--color-accent)' }}></div>
+                  </div>
                 </div>
               </div>
-            </div>
-            <button onClick={handleResetAi} className="text-sm text-muted hover:text-accent transition-colors"><i className="fa-solid fa-arrow-rotate-left mr-1.5 text-xs"></i>Reset free uses</button>
-          </>
-        )}
+              <button onClick={handleResetAi} className="text-sm text-accent hover:text-accent-l transition-colors font-medium">
+                <i className="fa-solid fa-arrow-rotate-left mr-1.5 text-xs"></i> Reset free uses
+              </button>
+            </>
+          )}
+        </div>
       </div>
 
       <div className="bg-s2 border border-bdr rounded-xl overflow-hidden">
