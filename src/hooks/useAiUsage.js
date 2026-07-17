@@ -1,5 +1,9 @@
 import { useState, useEffect } from 'react'
-import { supabase } from './supabase'
+import { createClient } from '@supabase/supabase-js'
+
+const supabaseUrl = process.env.VITE_SUPABASE_URL || ''
+const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || ''
+const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null
 
 const FREE_LIMIT = 10
 
@@ -8,7 +12,7 @@ export function useAiUsage(userId) {
   const [freeUsed, setFreeUsed] = useState(0)
 
   useEffect(() => {
-    if (!userId) return
+    if (!userId || !supabase) return
     const stored = localStorage.getItem('sf_ai_usage')
     if (stored) {
       const all = JSON.parse(stored)
