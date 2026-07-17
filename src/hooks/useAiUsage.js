@@ -1,44 +1,62 @@
+import { useState, useEffect } from 'react'
+import { supabase } from './supabase'
+
 const FREE_LIMIT = 10
 
-function getData(userId) {
-  try {
-    const all = JSON.parse(localStorage.getItem('sf_ai_usage') || '{}')
-    const data = all[userId] || {}
-    return { total: data.total || 0 }
-  } catch {
-    return { total: 0 }
-  }
-}
-
-function saveData(userId, data) {
-  const all = JSON.parse(localStorage.getItem('sf_ai_usage') || '{}')
-  all[userId] = data
-  localStorage.setItem('sf_ai_usage', JSON.stringify(all))
-}
-
 export function useAiUsage(userId) {
+  const [isPremium, setIsPremium] = useState(false)
+  const [freeUsed, setFreeUsed] = useState(0)
+
+  useEffect(() => {
+    if (!userId) return
+    const stored = localStorage.getItem('sf_ai_usage')
+    if (stored) {
+      const all = JSON.parse(stored)
+      setFreeUsed(all[userId]?.total || 0)
+    }
+
+    supabase.from('subscriptions').select('id, status, end_date')
+      .eq('user_id', userId)
+      .eq('status', 'active')
+      .gte('end_date', new Date().toISOString())
+      .then(({ data }) => {
+        setIsPremium(data && data.length > 0)
+      })
+      .catch(() => setIsPremium(false))
+  }, [userId])
+
   function canUse() {
-    return getData(userId).total < FREE_LIMIT
+    if (isPremium) return true
+    return freeUsed < FREE_LIMIT
   }
 
   function use() {
-    const data = getData(userId)
-    data.total = (data.total || 0) + 1
-    saveData(userId, data)
-    return data.total
+    if (isPremium) return
+    const newCount = freeUsed + 1
+    setFreeUsed(newCount)
+    const all = JSON.parse(localStorage.getItem('sf_ai_usage') || '{}')
+    if (!all[userId]) all[userId] = { total: 0 }
+    all[userId].total = newCount
+    localStorage.setItem('sf_ai_usage', JSON.stringify(all))
+    return newCount
   }
 
   function getRemaining() {
-    return Math.max(0, FREE_LIMIT - getData(userId).total)
+    if (isPremium) return Infinity
+    return Math.max(0, FREE_LIMIT - freeUsed)
   }
 
   function getUsed() {
-    return getData(userId).total
+    if (isPremium) return 'Unlimited'
+    return freeUsed
   }
 
   function reset() {
-    saveData(userId, { total: 0 })
+    const all = JSON.parse(localStorage.getItem('sf_ai_usage') || '{}')
+    if (all[userId]) all[userId].total = 0
+    localStorage.setItem('sf_ai_usage', JSON.stringify(all))
+    setFreeUsed(0)
   }
 
-  return { canUse, use, getRemaining, getUsed, reset, FREE_LIMIT }
+  return { canUse, use, getRemaining, getUsed, isPremium, reset, FREE_LIMIT }
 }
