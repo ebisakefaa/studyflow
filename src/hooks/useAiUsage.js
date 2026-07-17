@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 
-const SUPABASE_URL = process.env.VITE_SUPABASE_URL || ''
-const SUPABASE_KEY = process.env.VITE_SUPABASE_ANON_KEY || ''
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || ''
+const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || ''
 
 async function checkSubscription(userId) {
   if (!userId || !SUPABASE_URL || !SUPABASE_KEY) return false
