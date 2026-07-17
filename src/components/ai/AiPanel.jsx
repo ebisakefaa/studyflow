@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useToast } from '../../hooks/useToast'
-import { useAuth } from '../../hooks/useAuth'
-import { useAiUsage } from '../../hooks/useAiUsage'
+import { useAuth } from '../../hooks/useAiUsage'
 import { extractTextFromPdf } from '../../lib/pdfExtractor'
 import AiSummary from './AiSummary'
 import AiFlashcards from './AiFlashcards'
@@ -26,7 +25,7 @@ export default function AiPanel({ url }) {
   const [blocked, setBlocked] = useState(false)
   const { addToast } = useToast()
   const { user } = useAuth()
-  const { canUse, use: markUsed } = useAiUsage(user?.id)
+  const { canUse, use: markUsed, getRemaining } = useAiUsage(user?.id)
 
   async function getText() {
     setExtracting(true)
@@ -56,9 +55,6 @@ export default function AiPanel({ url }) {
     setActiveTab(tabId)
 
     if (tabId === 'ask') return
-    if (tabId === 'summary' && summary) return
-    if (tabId === 'flashcards' && flashcards) return
-    if (tabId === 'quiz' && quiz) return
 
     if (!canUse()) {
       setBlocked(true)
@@ -71,16 +67,18 @@ export default function AiPanel({ url }) {
     if (!text) { setLoading(prev => ({ ...prev, [tabId]: false })); return }
 
     try {
+      let result
       if (tabId === 'summary') {
-        const result = await callApi('summarize', { text: text.slice(0, 15000) })
-        setSummary(result.summary)
+        result = await callApi('summarize', { text: text.slice(0, 15000) })
+        if (result.summary) setSummary(result.summary)
       } else if (tabId === 'flashcards') {
-        const result = await callApi('flashcards', { text: text.slice(0, 15000) })
-        setFlashcards(result.flashcards)
+        result = await callApi('flashcards', { text: text.slice(0, 15000) })
+        if (result.flashcards) setFlashcards(result.flashcards)
       } else if (tabId === 'quiz') {
-        const result = await callApi('quiz', { text: text.slice(0, 15000) })
-        setQuiz(result.quiz)
+        result = await callApi('quiz', { text: text.slice(0, 15000) })
+        if (result.quiz) setQuiz(result.quiz)
       }
+
       markUsed()
     } catch (err) {
       addToast(err.message, 'error')
@@ -109,9 +107,7 @@ export default function AiPanel({ url }) {
     }
   }
 
-  function handleUpgrade() {
-    addToast('Premium coming soon! Stay tuned.', 'info')
-  }
+  function handleUpgrade() { addToast('Premium coming soon! Stay tuned.', 'info') }
 
   return (
     <div className="bg-s2 border border-bdr rounded-xl overflow-hidden">
