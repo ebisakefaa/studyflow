@@ -1,24 +1,30 @@
-import { useTheme } from '../../hooks/useTheme'
+import NotificationBell from './NotificationBell'
 
 export default function Sidebar({ courses, activeCourseId, onCourseClick, onNewCourse, onProfileClick, onPlannerClick, onSearchClick, user, onLogout, minimized, onToggle }) {
-  const { isDark, toggle } = useTheme()
-
   return (
     <aside className={'fixed top-0 left-0 z-40 h-screen bg-s1 border-r border-bdr flex flex-col shrink-0 transition-all duration-300 ' + (minimized ? 'w-16' : 'w-64')}>
-      <div className={'flex items-center gap-2.5 ' + (minimized ? 'p-4 justify-center' : 'p-5')}>
-        {!minimized && (
-          <>
-            <div className="w-8 h-8 rounded-lg bg-accent flex items-center justify-center shrink-0">
+      
+      {/* TOP BAR: Logo + Minimize Icon */}
+      <div className={'flex items-center ' + (minimized ? 'p-4 justify-center relative' : 'p-5 justify-between')}>
+        <div className="flex items-center gap-2.5">
+          {!minimized && (
+            <>
+              <div className="w-8 h-8 rounded-lg bg-accent flex items-center justify-center shrink-0">
+                <i className="fa-solid fa-book-open text-white text-sm"></i>
+              </div>
+              <span className="font-display text-lg font-bold text-txt">StudyFlow</span>
+            </>
+          )}
+          {minimized && (
+            <div className="w-8 h-8 rounded-lg bg-accent flex items-center justify-center">
               <i className="fa-solid fa-book-open text-white text-sm"></i>
             </div>
-            <span className="font-display text-lg font-bold text-txt">StudyFlow</span>
-          </>
-        )}
-        {minimized && (
-          <div className="w-8 h-8 rounded-lg bg-accent flex items-center justify-center">
-            <i className="fa-solid fa-book-open text-white text-sm"></i>
-          </div>
-        )}
+          )}
+        </div>
+        
+        <button onClick={onToggle} className={'flex items-center justify-center rounded-lg hover:bg-s2 transition-colors text-muted hover:text-txt ' + (minimized ? 'absolute right-1 top-1/2 -translate-y-1/2 w-7 h-7' : 'w-8 h-8')} title={minimized ? 'Expand sidebar' : 'Minimize sidebar'}>
+          <i className={'fa-solid text-xs ' + (minimized ? 'fa-angles-right' : 'fa-angles-left')}></i>
+        </button>
       </div>
 
       <nav className="flex-1 px-2 overflow-y-auto overflow-x-hidden">
@@ -49,7 +55,7 @@ export default function Sidebar({ courses, activeCourseId, onCourseClick, onNewC
           ))}
         </div>
 
-        <button onClick={onNewCourse} className={'w-full flex items-center gap-3 rounded-lg text-sm text-muted hover:text-accent transition-colors mt-1 ' + (minimized ? 'p-2.5 justify-center' : 'px-3 py-2')} title={minimized ? 'NewCourse' : ''}>
+        <button onClick={() => window.dispatchEvent(new Event('open-create-course'))} className={'w-full flex items-center gap-3 rounded-lg text-sm text-muted hover:text-accent transition-colors mt-1 ' + (minimized ? 'p-2.5 justify-center' : 'px-3 py-2')} title={minimized ? 'New Course' : ''}>
           <i className="fa-solid fa-plus w-4 text-center shrink-0"></i>
           {!minimized && <span>New Course</span>}
         </button>
@@ -61,16 +67,8 @@ export default function Sidebar({ courses, activeCourseId, onCourseClick, onNewC
           {!minimized && <span>Profile</span>}
         </button>
         
-        {/* THEME TOGGLE BUTTON */}
-        <button onClick={toggle} className={'w-full flex items-center gap-3 rounded-lg text-sm text-muted hover:text-accent transition-colors ' + (minimized ? 'p-2.5 justify-center' : 'px-3 py-2.5')} title={isDark ? 'Light mode' : 'Dark mode'}>
-          <i className={'fa-solid w-4 text-center shrink-0 ' + (isDark ? 'fa-sun' : 'fa-moon')}></i>
-          {!minimized && <span>{isDark ? 'Light Mode' : 'Dark Mode'}</span>}
-        </button>
+        <NotificationBell userId={user?.id} minimized={minimized} />
 
-        <button onClick={onToggle} className={'w-full flex items-center gap-3 rounded-lg text-sm text-muted hover:text-txt transition-colors ' + (minimized ? 'p-2.5 justify-center' : 'px-3 py-2.5')} title={minimized ? 'Expand sidebar' : 'Minimize sidebar'}>
-          <i className={'fa-solid w-4 text-center shrink-0 ' + (minimized ? 'fa-angles-right' : 'fa-angles-left')}></i>
-          {!minimized && <span>Minimize</span>}
-        </button>
         <button onClick={onLogout} className={'w-full flex items-center gap-3 rounded-lg text-sm text-muted hover:text-danger transition-colors ' + (minimized ? 'p-2.5 justify-center' : 'px-3 py-2.5')} title={minimized ? 'Sign out': ''}>
           <i className="fa-solid fa-right-from-bracket w-4 text-center shrink-0"></i>
           {!minimized && <span>Sign Out</span>}

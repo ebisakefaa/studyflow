@@ -1,6 +1,7 @@
-﻿import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { useToast } from '../hooks/useToast'
+import { useTheme } from '../hooks/useTheme'
 import { getGreeting, formatSize } from '../lib/utils'
 import CourseCard from '../components/courses/CourseCard'
 import CreateCourseModal from '../components/courses/CreateCourseModal'
@@ -14,6 +15,7 @@ export default function Dashboard({ user, onNavigateCourse }) {
   const [createOpen, setCreateOpen] = useState(false)
   const [deleteTarget, setDeleteTarget] = useState(null)
   const { addToast } = useToast()
+  const { isDark, toggle } = useTheme()
 
   async function fetchData() {
     setLoading(true)
@@ -43,6 +45,12 @@ export default function Dashboard({ user, onNavigateCourse }) {
   }
 
   useEffect(() => { fetchData() }, [user.id])
+
+  useEffect(() => {
+    const openModal = () => setCreateOpen(true)
+    window.addEventListener('open-create-course', openModal)
+    return () => window.removeEventListener('open-create-course', openModal)
+  }, [])
 
   async function handleCreate({ name, color }) {
     const { error } = await supabase.from('courses').insert({ user_id: user.id, name, color })
@@ -79,9 +87,14 @@ export default function Dashboard({ user, onNavigateCourse }) {
           <h1 className="font-display text-2xl sm:text-3xl font-bold mb-1">{getGreeting()}, {firstName}</h1>
           <p className="text-muted">Here is an overview of your workspace.</p>
         </div>
-        <button onClick={() => setCreateOpen(true)} className="shrink-0 flex items-center gap-2 px-5 py-2.5 bg-accent hover:bg-accent-l text-bg font-display font-semibold rounded-xl transition-colors">
-          <i className="fa-solid fa-plus text-sm"></i> New Course
-        </button>
+        <div className="shrink-0 flex items-center gap-2">
+          <button onClick={() => setCreateOpen(true)} className="flex items-center gap-2 px-5 py-2.5 bg-accent hover:bg-accent-hover text-white font-display font-semibold rounded-xl transition-colors">
+            <i className="fa-solid fa-plus text-sm"></i> New Course
+          </button>
+          <button onClick={toggle} className="w-10 h-10 flex items-center justify-center rounded-xl bg-s2 hover:bg-s3 border border-bdr text-muted hover:text-accent transition-colors" title={isDark ? "Light mode" : "Dark mode"}>
+            <i className={"fa-solid " + (isDark ? "fa-sun" : "fa-moon")}></i>
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-8">
