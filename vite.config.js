@@ -3,8 +3,17 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
-  css: { postcss: './postcss.config.js' },
+  build: {
+    rollupOptions: {
+      external: ['@supabase/supabase-js']
+    }
+  },
   server: {
-    proxy: { '/api': { target: 'http://localhost:3001', changeOrigin: true } }
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+      }
+    }
   }
 })
