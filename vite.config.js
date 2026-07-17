@@ -7,8 +7,20 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+  build: {
+    minify: false,
+    target: 'es2020',
+    cssMinify: 'esbuild',
+    rollupOptions: {
+      output: {
+        format: 'es',
+        generatedCode: 'es2020'
+      }
+    }
+  },
   optimizeDeps: {
-    include: ['@supabase/supabase-js', 'react-pdf', 'pdfjs-dist']
+    include: ['@supabase/supabase-js', 'react-pdf', 'pdfjs-dist'],
+    force: true
   },
   server: {
     proxy: {
