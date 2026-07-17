@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useToast } from '../../hooks/useToast'
 import { useAuth } from '../../hooks/useAuth'
+import { useAiUsage } from '../../hooks/useAiUsage'
 import { extractTextFromPdf } from '../../lib/pdfExtractor'
 import AiSummary from './AiSummary'
 import AiFlashcards from './AiFlashcards'
