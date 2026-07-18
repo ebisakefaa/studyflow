@@ -90,7 +90,7 @@ export default function PaymentSuccess() {
             </div>
             <h2 className="font-display text-xl font-bold mb-2 text-success">Payment Successful</h2>
             <p className="text-muted text-sm mb-6">{message}</p>
-            <button onClick={() => navigate('/')} className="w-full py-3 bg-accent hover:bg-accent-l text-bg font-display font-semibold rounded-xl transition-colors">
+            <button onClick={() => navigate('/')} className="w-full py-3 bg-accent hover:bg-accent-hover text-bg font-display font-semibold rounded-xl transition-colors">
               Go to Dashboard
             </button>
           </div>
@@ -105,7 +105,7 @@ export default function PaymentSuccess() {
             <p className="text-muted text-sm mb-6">{message}</p>
             <div className="flex gap-3 justify-center">
               <button onClick={() => navigate('/')} className="px-5 py-2.5 border border-bdr hover:border-muted/40 rounded-xl text-sm text-muted hover:text-txt transition-all">Back to Dashboard</button>
-              <button onClick={() => navigate('/profile')} className="px-5 py-2.5 bg-accent hover:bg-accent-l text-bg font-display font-semibold rounded-xl transition-colors text-sm">Try Again</button>
+              <button onClick={() => navigate('/profile')} className="px-5 py-2.5 bg-accent hover:bg-accent-hover text-bg font-display font-semibold rounded-xl transition-colors text-sm">Try Again</button>
             </div>
           </div>
         )}

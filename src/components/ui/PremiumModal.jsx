@@ -22,8 +22,8 @@ export default function PremiumModal({ open, onClose, user }) {
       })
       const data = await res.json()
 
-      if (data.error) {
-        alert(data.error)
+      if (data.error || !data.checkout_url) {
+        alert(data.error || 'Payment setup failed. Check your Chapa API key.')
         setLoading(false)
         return
       }

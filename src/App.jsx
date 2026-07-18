@@ -77,9 +77,9 @@ export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <ThemeProvider><ThemeProvider><ToastProvider>
+        <ThemeProvider><ToastProvider>
           <AppRoutes />
-        </ToastProvider></ThemeProvider></ThemeProvider>
+        </ToastProvider></ThemeProvider>
       </AuthProvider>
     </BrowserRouter>
   )

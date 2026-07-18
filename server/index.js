@@ -81,4 +81,56 @@ app.post('/api/ai/ask', async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }) }
 })
 
+
+const CHAPA_SECRET = process.env.CHAPA_SECRET_KEY
+
+app.post('/api/payment/initialize', async (req, res) => {
+  try {
+    const { email, amount, plan } = req.body
+    if (!email || !amount || !plan) return res.status(400).json({ error: 'Missing required fields' })
+
+    const tx_ref = plan + '_' + Date.now()
+    
+    const response = await fetch('https://api.chapa.co/v1/transaction/initialize', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + CHAPA_SECRET, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        amount: amount,
+        currency: 'ETB',
+        email: email,
+        first_name: 'StudyFlow',
+        last_name: 'User',
+        tx_ref: tx_ref,
+        callback_url: process.env.SITE_URL + '/payment/success?trx_ref=' + tx_ref,
+        return_url: process.env.SITE_URL + '/payment/success?trx_ref=' + tx_ref
+      })
+    })
+
+    const data = await response.json()
+    if (data.status === 'error' || !data.data) return res.status(500).json({ error: 'Chapa Error: ' + JSON.stringify(data.message || data) })
+    res.json({ checkout_url: data.data.checkout_url, tx_ref: tx_ref })
+  } catch (err) { res.status(500).json({ error: err.message }) }
+})
+
+app.post('/api/payment/verify', async (req, res) => {
+  try {
+    const { tx_ref } = req.body
+    if (!tx_ref) return res.status(400).json({ error: 'Missing transaction reference' })
+
+    const response = await fetch('https://api.chapa.co/v1/transaction/verify/' + tx_ref, {
+      headers: { 'Authorization': 'Bearer ' + CHAPA_SECRET }
+    })
+
+    const data = await response.json()
+    if (data.error) return res.status(500).json({ error: data.message })
+
+    if (data.data.status === 'success') {
+      const plan = tx_ref.split('_')[0]
+      res.json({ status: 'success', plan: plan })
+    } else {
+      res.json({ status: 'failed' })
+    }
+  } catch (err) { res.status(500).json({ error: err.message }) }
+})
+
 app.listen(3001, () => { console.log('StudyFlow AI server running on http://localhost:3001') })
